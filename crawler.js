@@ -21,7 +21,7 @@ const MOBILE_VIEWPORT = {
 };
 
 // for debugging: will lunch in window mode instad of headless, open devtools and don't close windows after process finishes
-const VISUAL_DEBUG = false;
+const VISUAL_DEBUG = true;
 
 /**
  * @param {function(...any):void} log
@@ -231,7 +231,9 @@ async function getSiteData(context, url, {
             // eslint-disable-next-line no-await-in-loop
             const collectorData = await collector.getData({
                 finalUrl,
-                urlFilter: urlFilter && urlFilter.bind(null, finalUrl)
+                urlFilter: urlFilter && urlFilter.bind(null, finalUrl),
+                // @ts-ignore
+                page
             });
             data[collector.id()] = collectorData;
             log(`getting ${collector.id()} data took ${getDataTimer.getElapsedTime()}s`);

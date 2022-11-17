@@ -77,7 +77,18 @@ class TrackerTracker {
             let conditionScript = `
                 const data = {
                     description: '${description}',
-                    stack: (new Error()).stack
+                    stack: (new Error()).stack,
+                    timestamp: Date.now(),
+                    details : (  
+                        (this.tagName && this.tagName.toUpperCase() === "INPUT") && ['email', 'password'].includes(this.type) ?
+                    {
+                        id : this.id,
+                        type: this.type,
+                        value: this.value,
+                        //formAction: this.form.action,
+                        baseURI : this.baseURI,
+                        timestamp: Date.now()                
+                    } : {})
                 };
             `;
 
@@ -198,8 +209,8 @@ class TrackerTracker {
 
     /**
      * @param {{payload: string, description: string, executionContextId: number}} params
-     * @returns {{description: string, source: string, saveArguments: boolean, arguments: string[]}}
-     */
+     * @returns {{description: string, source: string, saveArguments: boolean, arguments: string[], stack:string , timestamp:Number, details: object}}
+     */ 
     processDebuggerPause(params) {
         let payload = null;
         
@@ -238,6 +249,9 @@ class TrackerTracker {
             description: payload.description,
             saveArguments: breakpoint.saveArguments,
             arguments: payload.args,
+            details : payload.details,
+            stack: payload.stack,
+            timestamp : payload.timestamp,
             source: script
         };
     }

@@ -602,6 +602,17 @@ const breakpoints = [
     //         {name: 'start'}
     //     ]
     // }
+    {// To check whether a script reaches the input field or not
+        proto: 'HTMLInputElement',
+        props: [
+            {
+                name: 'value',
+                description: 'Input element value',
+                saveArguments : true,
+            }
+        ],
+        methods: []
+    },
 ];
 
 module.exports = breakpoints;

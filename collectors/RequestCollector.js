@@ -42,6 +42,7 @@ class RequestCollector extends BaseCollector {
          * @type {Map<string, InternalRequestData>}
          */
         this._unmatched = new Map();
+        this._headersFromRequestWillBeSentExtraInfo = new Map();
         this._log = log;
     }
 
@@ -56,6 +57,7 @@ class RequestCollector extends BaseCollector {
 
         await Promise.all([
             cdpClient.on('Network.requestWillBeSent', r => this.handleRequest(r, cdpClient)),
+            cdpClient.on('Network.requestWillBeSentExtraInfo', r => this.handleRequestWillBeSentExtraInfo(r)),
             cdpClient.on('Network.webSocketCreated', r => this.handleWebSocket(r)),
             cdpClient.on('Network.responseReceived', r => this.handleResponse(r)),
             cdpClient.on('Network.responseReceivedExtraInfo', r => this.handleResponseExtraInfo(r)),
@@ -114,6 +116,7 @@ class RequestCollector extends BaseCollector {
         let initiator = data.initiator;
         const url = request.url;
         const method = request.method;
+        let postData = method === "POST" ? request.postData : "";
 
         // for CORS requests initiator is set incorrectly to 'parser', thankfully we can get proper initiator
         // from the corresponding OPTIONS request
@@ -131,7 +134,7 @@ class RequestCollector extends BaseCollector {
         /**
          * @type {InternalRequestData}
          */
-        const requestData = {id, url, method, type, initiator, startTime};
+        const requestData = {id, url, method, type, initiator, startTime, postData};
 
         // if request A gets redirected to B which gets redirected to C chrome will produce 4 events:
         // requestWillBeSent(A) requestWillBeSent(B) requestWillBeSent(C) responseReceived()
@@ -176,6 +179,8 @@ class RequestCollector extends BaseCollector {
                 }
             });
         }
+        const extraInfoHeaders = this._headersFromRequestWillBeSentExtraInfo.get(id);
+        requestData.requestHeaders = normalizeHeaders(extraInfoHeaders ? extraInfoHeaders : request.headers);
 
         this._requests.push(requestData);
     }
@@ -223,6 +228,29 @@ class RequestCollector extends BaseCollector {
             request.responseHeaders = normalizeHeaders(response.headers);
         }
     }
+
+    
+    /**
+    * Network.requestWillBeSentExtraInfo
+    * @param {{requestId: RequestId, associatedCookies: object, headers: Object<string, string>}} data
+    */
+    handleRequestWillBeSentExtraInfo(data) {
+        const {
+            requestId: id,
+            headers
+        } = data;
+        // check if there's a matching request
+        const request = this.findLastRequestWithId(id);
+        if (!request) {
+            // store the headers if no request is found
+            this._headersFromRequestWillBeSentExtraInfo.set(id, headers);
+            return;
+        }
+        // set the headers directly if a matching request is found
+        // handleRequestWillBeSentExtraInfo provides most details
+        request.requestHeaders = normalizeHeaders(headers);
+    }
+
 
     /**
      * Network.responseReceivedExtraInfo
@@ -333,13 +361,15 @@ class RequestCollector extends BaseCollector {
                 status: request.status,
                 size: request.size,
                 remoteIPAddress: request.remoteIPAddress,
+                requestHeaders : request.requestHeaders,
                 responseHeaders: request.responseHeaders && filterHeaders(request.responseHeaders, this._saveHeaders),
                 responseBodyHash: request.responseBodyHash,
                 failureReason: request.failureReason,
                 redirectedTo: request.redirectedTo,
                 redirectedFrom: request.redirectedFrom,
                 initiators: Array.from(getAllInitiators(request.initiator)),
-                time: (request.startTime && request.endTime) ? (request.endTime - request.startTime) : undefined
+                time: (request.startTime && request.endTime) ? (request.endTime - request.startTime) : undefined,
+                postData : request.postData
             }));
     }
 }
@@ -356,8 +386,10 @@ module.exports = RequestCollector;
  * @property {string=} redirectedTo
  * @property {number=} status
  * @property {string} remoteIPAddress
+ * @property {object} requestHeaders
  * @property {object} responseHeaders
  * @property {string=} responseBodyHash
+ * @property {string=} postData
  * @property {string} failureReason
  * @property {number=} size in bytes
  * @property {number=} time in seconds
@@ -374,12 +406,14 @@ module.exports = RequestCollector;
  * @property {string=} redirectedTo
  * @property {number=} status
  * @property {string=} remoteIPAddress
+ * @property {Object<string,string>=} requestHeaders
  * @property {Object<string,string>=} responseHeaders
  * @property {string=} failureReason
  * @property {number=} size
  * @property {Timestamp=} startTime
  * @property {Timestamp=} endTime
  * @property {string=} responseBodyHash
+ * @property {string=} postData
  */
 
 /**
@@ -404,6 +438,7 @@ module.exports = RequestCollector;
  * @property {HttpMethod} method
  * @property {object} headers
  * @property {'VeryLow'|'Low'|'Medium'|'High'|'VeryHigh'} initialPriority
+ * @property {string} postData
  */
 
 /**
