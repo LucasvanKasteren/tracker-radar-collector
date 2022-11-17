@@ -84,10 +84,7 @@ class APICallCollector extends BaseCollector {
                 this._calls.push({
                     source: breakpoint.source,
                     description: breakpoint.description,
-                    arguments: breakpoint.arguments,
-                    details: breakpoint.details,
-                    stack : breakpoint.stack,
-                    timestamp : breakpoint.timestamp,                 
+                    arguments: breakpoint.arguments
                 });
             }
         }
@@ -157,9 +154,6 @@ module.exports = APICallCollector;
  * @property {string} source - source script
  * @property {string} description - breakpoint description
  * @property {string[]} arguments - preview or the passed arguments
- * @property {string} stack - stacktrace
- * @property {Number} timestamp - timestamp
- * @property {object} details - details on input element access
  */
 
 /**
