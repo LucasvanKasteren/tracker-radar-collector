@@ -1,3 +1,5 @@
+const { Puppeteer } = require('puppeteer');
+
 class BaseCollector {
 
     id() {
