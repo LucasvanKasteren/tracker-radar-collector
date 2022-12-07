@@ -35,15 +35,11 @@ class DOMChangeCollector extends BaseCollector{
         
         const fillInputField = function(/** @type {HTMLInputElement} */ field){
             //check type and fill accordingly
-            console.log("Field value: ", field);
-            console.log("Field : ", field.id);
             if(field.type == 'email' && field.tagName != 'form'){
                 field.value = 'hello@gmail.com';
-                console.log('Email field filled!');
             }
             else if (field.type == 'password'  && field.tagName != 'form'){
-                field.value = 'world';
-                console.log('Password field filled!');
+                field.value = 'myPwd1234';
             }
             else{
                 console.log('No email or password fields to fill');
@@ -51,19 +47,13 @@ class DOMChangeCollector extends BaseCollector{
         };
       
         var testList = []; const observeTargets = function(){
-            console.log("Get target node");
             // Specify root document node as target node to observe full page
             const targetNode = window.document.documentElement;
             const config = {attributes:true, childList: true, subtree:true};
-            console.log("Before callback");
             const callback = function(/** @type {MutationRecord[]} */ mutationList, /** @type {MutationObserver} */ observer){
-                console.log("Enter callback");
                 mutationList.forEach( function(mutation){
                     console.log("Enter mutationList");
                     for(var i=0; i<mutation.addedNodes.length; i++){
-                        console.log("Mutation type: " + mutation.type);
-                        console.log("Mutation target: " + mutation.target.nodeName);
-                        console.log("Mutation name: " + mutation.addedNodes[i].nodeName);
 
                         if(mutation.addedNodes[i].nodeName == "#text" || mutation.addedNodes[i].nodeName == "#comment" ){
                             continue;
@@ -74,17 +64,8 @@ class DOMChangeCollector extends BaseCollector{
                         if (forms.length == 0){
                             continue;
                         }
-                        // Add mutations to list and print them 
-                        console.log("Mutation which will be added to list: ", mutation.addedNodes[i]);
-                        console.log("Forms: ", forms);
-                        console.log("Length forms: ", forms.length);                      
-                        
-                        console.log("Mutation inserted nodes: ", forms[i].outerHTML);
-                        console.log("Before adding to testList:", testList);
-                        console.log("Length of testList ", testList.length);
                         testList.push(forms[i].outerHTML);
                         //testList.push(forms[i]);                    
-                        console.log("After adding to testList:", testList);
                         setTimeout(fillInputFields,2000, forms);
                     }
 
@@ -104,7 +85,6 @@ class DOMChangeCollector extends BaseCollector{
         });        
         `;
         await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: SOURCE_STRING}); 
-        await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: `console.log("INJECTED SCRIPT")`});
 
         console.log('End of target function');
     }
@@ -127,7 +107,7 @@ class DOMChangeCollector extends BaseCollector{
 }
 
 //npm run crawl -- -u "https://output.jsbin.com/levuwoc" -o ./test_pages_2/ -f -v -d requests,targets,cookies,screenshots,apis,domchange 
-
+//npm run crawl -- -i C:\Users\lvank\Documents\Radboud-Universiteit\Studiejaar-3\Thesis-2\TrancoTop75.txt -o ./trancotop10-test/ -f -v -d targets,requests,apis,domchange
 
 module.exports = DOMChangeCollector
 

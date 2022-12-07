@@ -3,5 +3,4 @@ node_modules
 .vscode/
 data/
 summary.json
-test_pages
-test_pages_2
+smallcrawltests
