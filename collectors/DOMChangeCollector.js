@@ -65,8 +65,8 @@ class DOMChangeCollector extends BaseCollector{
                             continue;
                         }
                         testList.push(forms[i].outerHTML);
-                        //testList.push(forms[i]);                    
-                        setTimeout(fillInputFields,2000, forms);
+                        //testList.push(forms[i]);                   
+                        setTimeout(fillInputFields,1000, forms);
                     }
 
                 });
@@ -84,6 +84,7 @@ class DOMChangeCollector extends BaseCollector{
             observeTargets();
         });        
         `;
+        await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: `console.log("INJECTED SCRIPT")`}); 
         await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: SOURCE_STRING}); 
 
         console.log('End of target function');
@@ -106,7 +107,7 @@ class DOMChangeCollector extends BaseCollector{
 
 }
 
-//npm run crawl -- -u "https://output.jsbin.com/levuwoc" -o ./test_pages_2/ -f -v -d requests,targets,cookies,screenshots,apis,domchange 
+//npm run crawl -- -u "https://output.jsbin.com/levuwoc" -o ./test_pages/ -f -v -d targets,requests,apis,domchange 
 //npm run crawl -- -i C:\Users\lvank\Documents\Radboud-Universiteit\Studiejaar-3\Thesis-2\TrancoTop75.txt -o ./trancotop10-test/ -f -v -d targets,requests,apis,domchange
 
 module.exports = DOMChangeCollector
