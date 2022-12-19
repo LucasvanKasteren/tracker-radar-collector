@@ -2,16 +2,15 @@ const puppeteer = require('puppeteer');
 const BaseCollector = require('./BaseCollector');
 
 
-class DOMChangeCollector extends BaseCollector{
+class MutationsCollector extends BaseCollector{
 
     id() {
-        return 'domchange';
+        return 'mutations';
     }
     /**
      * @param {import('./BaseCollector').CollectorInitOptions} options
      */
     init({log, url}) {
-        console.log("Init function");
         /**
          * @type {any[]}
          */
@@ -23,7 +22,6 @@ class DOMChangeCollector extends BaseCollector{
      * @param {{cdpClient: import('puppeteer').CDPSession, url: string, type: import('./TargetCollector').TargetType,}} targetInfo 
      */
     async addTarget({cdpClient, url, type}) {
-        console.log('Start of target function');
         await cdpClient.send('Page.enable');
         await cdpClient.send('DOM.enable');
         const SOURCE_STRING = `
@@ -46,13 +44,12 @@ class DOMChangeCollector extends BaseCollector{
             }
         };
       
-        var testList = []; const observeTargets = function(){
+        var resultList = []; const observeTargets = function(){
             // Specify root document node as target node to observe full page
             const targetNode = window.document.documentElement;
             const config = {attributes:true, childList: true, subtree:true};
             const callback = function(/** @type {MutationRecord[]} */ mutationList, /** @type {MutationObserver} */ observer){
                 mutationList.forEach( function(mutation){
-                    console.log("Enter mutationList");
                     for(var i=0; i<mutation.addedNodes.length; i++){
 
                         if(mutation.addedNodes[i].nodeName == "#text" || mutation.addedNodes[i].nodeName == "#comment" ){
@@ -64,22 +61,25 @@ class DOMChangeCollector extends BaseCollector{
                         if (forms.length == 0){
                             continue;
                         }
-                        testList.push(forms[i].outerHTML);
-                        //testList.push(forms[i]);                   
+                        var elemDimension = forms[i].getBoundingClientRect();
+                        var parentFormAction = forms[i].form.action;
+                        //Push the mutation to the result list together with its position and action
+                        resultList.push(forms[i].outerHTML, ("Form element width: " + elemDimension.width), ("Form element heigth: " + elemDimension.height), parentFormAction);
+                        //Call the function to fill the input fields
                         setTimeout(fillInputFields,1000, forms);
                     }
 
                 });
 
             };
-            
+            //Create the MutationObserver object to initiate callback
             const observer = new MutationObserver(callback);
             // Start observing target node	
             observer.observe(targetNode,config);         
         };
          
 
-        
+        //Start observering targets when the whole DOM content has been loaded
         window.addEventListener('DOMContentLoaded', (event) => {
             observeTargets();
         });        
@@ -87,20 +87,16 @@ class DOMChangeCollector extends BaseCollector{
         await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: `console.log("INJECTED SCRIPT")`}); 
         await cdpClient.send('Page.addScriptToEvaluateOnNewDocument', {source: SOURCE_STRING}); 
 
-        console.log('End of target function');
     }
 
     /**
      * @param {Options} options
      */
     async getData(options) { 
-        console.log("getData function");
         this._options = options;
         this.page = options.page;
-        //console.log("Page:", this.page);
         this.finalUrl = options.finalUrl;
-        var result = await this.page.evaluate(`testList`);
-        //console.log("Page evaluation: ", result);
+        var result = await this.page.evaluate(`resultList`);
         this._insertedNodes.push(result);
         return this._insertedNodes;    
     }
@@ -110,7 +106,7 @@ class DOMChangeCollector extends BaseCollector{
 //npm run crawl -- -u "https://output.jsbin.com/levuwoc" -o ./test_pages/ -f -v -d targets,requests,apis,domchange 
 //npm run crawl -- -i C:\Users\lvank\Documents\Radboud-Universiteit\Studiejaar-3\Thesis-2\TrancoTop75.txt -o ./trancotop10-test/ -f -v -d targets,requests,apis,domchange
 
-module.exports = DOMChangeCollector
+module.exports = MutationsCollector
 
 
 /**

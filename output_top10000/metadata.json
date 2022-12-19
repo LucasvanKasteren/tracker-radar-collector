@@ -1,0 +1,25 @@
+{
+  "startTime": 1671456124634,
+  "endTime": 1671456145752,
+  "result": "success",
+  "stats": {
+    "urls": 1,
+    "skipped": 0,
+    "successes": 1,
+    "failures": 0
+  },
+  "config": {
+    "dataCollectors": [
+      "targets",
+      "requests",
+      "apis",
+      "domchange"
+    ]
+  },
+  "environment": {
+    "projectVersion": "1.0.0",
+    "hostname": "Laptop-Lucas",
+    "cpus": 8,
+    "username": "lvank"
+  }
+}
