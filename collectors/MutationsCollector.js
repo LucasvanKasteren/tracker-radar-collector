@@ -34,7 +34,7 @@ class MutationsCollector extends BaseCollector{
         const fillInputField = function(/** @type {HTMLInputElement} */ field){
             //check type and fill accordingly
             if(field.type == 'email' && field.tagName != 'form'){
-                field.value = 'hello@gmail.com';
+                field.value = 'inputdetector@gmail.com';
             }
             else if (field.type == 'password'  && field.tagName != 'form'){
                 field.value = 'myPwd1234';

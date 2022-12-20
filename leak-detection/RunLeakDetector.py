@@ -7,8 +7,7 @@ import LeakDetector
 MAX_LEAK_DETECTION_LAYERS = 3
 
 PWD = 'myPwd1234'
-PWD2 = 'world'
-EMAIL = 'hello@gmail.com'
+EMAIL = 'inputdetector@gmail.com'
 
 def get_initiators(request):
     initiators = request['initiators']
@@ -17,6 +16,11 @@ def get_initiators(request):
         all_initiators.add(initiator)
     
     return all_initiators
+
+# def get_input_field_mutations(mutations, initial_url,final_url):
+#     all_mutations = []
+#     all_mutations.append((mutations, initial_url, final_url))
+#     return all_mutations
 
 
 def get_input_field_sniffs(input_reads, initial_url, final_url):
@@ -31,6 +35,7 @@ def get_input_field_sniffs(input_reads, initial_url, final_url):
         if 'value' not in read_details:
             continue
         sniffed_value = read_details['value']
+        id_sniffed_value = read_details['id']
         if 'source' not in input_read:
             source = None
         else:
@@ -38,7 +43,7 @@ def get_input_field_sniffs(input_reads, initial_url, final_url):
     
         if sniffed_value:
             #print("Sniff found in:", initial_url)
-            sniffs.add((initial_url, source, sniffed_value, final_url))
+            sniffs.add((initial_url, source, id_sniffed_value, sniffed_value, final_url))
         # else:
         #     print("No sniff found in:", initial_url)
 
@@ -96,9 +101,10 @@ def detect_leaks_in_json(json_path):
     input_reads = calls.get('savedCalls') if calls else None
                     
     requests = visit_data['requests']
-
+    #mutations = visit_data['domchange']
+    
     all_sniffs = get_input_field_sniffs(input_reads, initial_url, final_url)  
-
+    #all_mutations = get_input_field_mutations(mutations, initial_url,final_url)
 
     used_credentials = [PWD, EMAIL]
 
