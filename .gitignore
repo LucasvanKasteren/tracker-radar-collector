@@ -1,6 +1,9 @@
 node_modules
 .DS_Store
 .vscode/
-data/
 summary.json
-smallcrawltests
+smallcrawltests/
+leak-detection/__pycache__/
+output_top10000/
+output_top50000/
+test_pages/
