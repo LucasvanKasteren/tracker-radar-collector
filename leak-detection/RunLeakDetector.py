@@ -49,7 +49,7 @@ def get_input_field_sniffs(input_reads, initial_url, final_url):
 
     return sniffs
 
-def detect_leaks_in_request(request, detector, final_url):
+def detect_leaks_in_request(initial_url, request, detector, final_url):
     if not len(request):
         print('No requests in', final_url)
         return None
@@ -61,7 +61,7 @@ def detect_leaks_in_request(request, detector, final_url):
     post_leaks = detector.check_post_data(post_body, MAX_LEAK_DETECTION_LAYERS)
 
     if url_leaks or post_leaks:
-        return f'Leak found in: {request_url} with URL leak value: {url_leaks}', f'Post leak value: {post_leaks}'
+        return f'Base URL {initial_url} has a leak found in: {request_url} with URL leak value: {url_leaks}', f'Post leak value: {post_leaks}'
     else:
         return None
 
@@ -76,7 +76,7 @@ def detect_leaks_in_requests(requests, initial_url, leak_detector, final_url):
         request_url = request['url']
         if request_url.startswith('blob') or request_url.startswith('about:blank'):
             continue 
-        request_leak = detect_leaks_in_request(request, leak_detector, final_url)
+        request_leak = detect_leaks_in_request(initial_url, request, leak_detector, final_url)
         if request_leak is None:
             continue
         all_request_leaks += request_leak
